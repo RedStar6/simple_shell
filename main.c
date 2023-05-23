@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv)
 {
-
+    signal(SIGINT, sigintHandler);
     ssize_t inputCommand;  // Declare a variable to store the size of the input command
     pid_t pid;             // Declare a variable to store the process ID
     char *command = NULL;  // Declare a pointer for the input command
