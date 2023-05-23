@@ -22,5 +22,6 @@ int _putchar(char c);
 void print_errorStartString(char **argv, int loopCount, char *command, char *error);
 int u_exit(char **argv, char *command);
 int builtin_functions(char **argv, char *command);
+int stringlength(char *s);
 
 #endif /* HEADER_H */

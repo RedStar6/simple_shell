@@ -19,6 +19,20 @@ int _strcmp(char *s1, char *s2)
     }
     return (0);
 }
+/**
+ * stringlength - gets the length of a string
+ * @s: a string
+ * Return: length of string
+ **/
+int stringlength(char *s)
+{
+    int i;
+
+    for (i = 0; s[i] != '\0'; i++)
+    {
+    }
+    return (i);
+}
 
 /**
  * _putchar - writes a single character to stdout
@@ -40,6 +54,7 @@ int _putchar(char c)
  **/
 void print_errorStartString(char **argv, int loopCount, char *command, char *error)
 {
+
     int i = 0;
     int j = 0;
     const char *name = argv[0];
@@ -106,3 +121,4 @@ int u_exit(char **argv, char *command)
     free(command);
     exit(1);
 }
+
