@@ -1,24 +1,5 @@
 #include "header.h"
 
-/**
- * _strcmp - compares two strings to see if they are the same
- * @s1: string 1
- * @s2: string 2
- * Return: s1[i] - s2[j] on failure or 0 on success
- **/
-int _strcmp(char *s1, char *s2)
-{
-    int i = 0, j = 0;
-
-    for (; s1[i] != '\0' || s2[j] != '\0'; i++, j++)
-    {
-        if (s1[i] != s2[j])
-        {
-            return (s1[i] - s2[j]);
-        }
-    }
-    return (0);
-}
 
 /**
  * _putchar - writes a single character to stdout
@@ -38,8 +19,9 @@ int _putchar(char c)
  * @error: optional custom error message to be printed if the user wants to
  * Return: the character
  **/
-void print_errorStartString(char **argv, int loopCount, char *command, char *error)
+void print_errorStartString(char **argv, unsigned long loopCount, char *command, char *error)
 {
+
     int i = 0;
     int j = 0;
     const char *name = argv[0];
@@ -52,7 +34,7 @@ void print_errorStartString(char **argv, int loopCount, char *command, char *err
 
     _putchar(':');
     _putchar(' ');
-    _putchar(loopCount + '0');
+    printNumber(loopCount);
     _putchar(':');
     _putchar(' ');
 
@@ -91,9 +73,14 @@ int builtin_functions(char **argv, char *command)
     {
         for (i = 0; arr[i].function; i++)
         {
+            if (_strcmp(argv[0], "exit") == 0)
+            {
+                u_exit(command);
+                return (1);
+            }
             if (_strcmp(command, arr[i].function_desc) == 0)
             {
-                arr[i].function(argv, command);
+                arr[i].function();
                 return (1);
             }
         }
@@ -101,8 +88,21 @@ int builtin_functions(char **argv, char *command)
     return (0);
 }
 
-int u_exit(char **argv, char *command)
+/**
+ * u_exit - a custom exit function
+ * @command: pointer to the command input
+ * Return: the exit code
+ **/
+int u_exit(char *command)
 {
     free(command);
     exit(1);
+}
+
+void sigintHandler(int sig_num)
+{
+    // Signal handling code goes here
+    printf("\n");
+    printf("$ ");
+    fflush(stdout);
 }

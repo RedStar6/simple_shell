@@ -4,22 +4,23 @@
 
 int main(int argc, char **argv)
 {
-    ssize_t inputCommand;             // Declare a variable to store the size of the input command
-    pid_t pid;                        // Declare a variable to store the process ID
-    char *command = NULL;             // Declare a pointer for the input command
-    size_t bufsize = 0;               // Declare a variable to store the buffer size for the input command
-    extern char **environ;            // Declare an external pointer to the environment variables
-    char *path = getenv("PATH");      
+    signal(SIGINT, sigintHandler);
+    ssize_t inputCommand;  // Declare a variable to store the size of the input command
+    pid_t pid;             // Declare a variable to store the process ID
+    char *command = NULL;  // Declare a pointer for the input command
+    size_t bufsize = 0;    // Declare a variable to store the buffer size for the input command
+    extern char **environ; // Declare an external pointer to the environment variables
+    char *path = getenv("PATH");
     // Declare a pointer to the PATH environment variable and stores all the environment variables in the path variable
-    char path_copy[strlen(path) + 1]; 
-    // Declare a character array with the length of the PATH environment variable because with how I implemented the function with each iteration of the while loop the environment variables will be split up using strtok into tokens. In this way the environment variables wont be complete thereby introducing errors. I declared this variable so that with each iteration the original path variable contents will be copied into the path_copy variable.
+    char path_copy[strlen(path) + 1];
 
-    unsigned long loopCount = 1; 
+    unsigned long loopCount = 1;
     // Declare a variable to store the number of times the loop has been executed. In case of an error the number of times the the user has supplied a command needs to printed to the screen. This variable keeps track of that.
-
+    int interrupted = 0;
     while (1) // Begin an infinite loop
     {
-        if (isatty(STDIN_FILENO)) 
+
+        if (isatty(STDIN_FILENO))
         // the isatty function is for checking if the program is in interactive mod or not. If it is interactive mode print the prompts and if not dont print the prompts.
         {
             {
@@ -38,33 +39,41 @@ int main(int argc, char **argv)
         }
 
         /* Remove the trailing newline character */
-        command[inputCommand - 1] = '\0';
+        if (stringlength(command) > 1)
+        {
+            command[inputCommand - 1] = '\0';
+        }
+        else
+        {
+            command[0] = '\0';
+            continue;
 
-        if(builtin_functions(argv, command) == 1)
+        }
+
+        if (builtin_functions(argv, command) == 1)
         {
             continue;
-            
         }
 
         /* Split the command into arguments */
-        char *arg = strtok(command, " "); 
+        char *arg = strtok(command, " ");
         // Split the input command into arguments using the strtok function b using the delimiter "whitespace" into tokens. the strtok functions stores the first of the splitted arguments in the arg variable.
-        char *args[MAX_CMD_LEN];          // Declare an array to store the arguments
-        int i = 0;                        // Declare a variable to keep track of the number of arguments
+        char *args[MAX_CMD_LEN]; // Declare an array to store the arguments
+        int i = 0;               // Declare a variable to keep track of the number of arguments
 
-        while (arg != NULL) 
+        while (arg != NULL)
         // Loop through each argument in the arg value consisting of the tokens.
         {
-            args[i] = arg;           // Store the current token in the args array.
-            arg = strtok(NULL, " "); 
+            args[i] = arg; // Store the current token in the args array.
+            arg = strtok(NULL, " ");
             // Move to the next argument because if the the strtok function is called again after the first call it returns the next token.
-            i++;                     // Increment the number of arguments
+            i++; // Increment the number of arguments
         }
 
-        args[i] = NULL;                                      // Set the last argument to NULL
-        struct stat sb;                                      
+        args[i] = NULL; // Set the last argument to NULL
+        struct stat sb;
         // Declare a struct sb to hold information about the file
-        
+
         if (stat(args[0], &sb) == 0 && sb.st_mode & S_IXUSR)
         // this condition is used to get information about the filein the args[0] variable. The information is stored in a struct stat(sb) and the next condition performs a bitwise operation to check if the user has the right permission to execute the file. This will confirm that the command given is a path to a file and the file is executable
         {
@@ -74,12 +83,12 @@ int main(int argc, char **argv)
         }
 
         /* Search for the command in the PATH */
-        strcpy(path_copy, path);            
+        strcpy(path_copy, path);
         // Copies the original PATH environment variable to a new character array path_copy
 
         char *dir = strtok(path_copy, ":"); // Split the PATH environment variable into directories
 
-        char command_path[MAX_CMD_LEN]; 
+        char command_path[MAX_CMD_LEN];
         // Declare a character array to hold the full absolute command path
 
         while (dir != NULL)
@@ -90,7 +99,7 @@ int main(int argc, char **argv)
             if (d != NULL)
             {
                 struct dirent *entry;
-                //the struct dirent is a structure for holding informating regarding to the entry to a directory this allows us to access the contents of the directory.
+                // the struct dirent is a structure for holding informating regarding to the entry to a directory this allows us to access the contents of the directory.
 
                 while ((entry = readdir(d)) != NULL)
                 // Loop through all the files in the directory using the readdir function
@@ -143,7 +152,7 @@ int main(int argc, char **argv)
             int ret = execve(command_path, args, environ);
             // we use the execve function to execute the our function. The function takes either the absolute path or relative path which on our case is the command_path variable, then the args value supplies the function with the arguments to the function, then the environ represents the environment . which in our case is the external pointer to the environment i.e environ
             if (ret == -1)
-            //in case an error occurs
+            // in case an error occurs
             {
                 // Execution failed, print an error message and exit
                 print_errorStartString(argv, loopCount, args[0], NULL);
@@ -169,4 +178,3 @@ int main(int argc, char **argv)
     free(command);
     return 0;
 }
-
